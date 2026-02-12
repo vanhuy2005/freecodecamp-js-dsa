@@ -1,0 +1,11 @@
+** start of script.js **
+
+const myList = [];
+myList.push(["this is a string",0]);
+myList.push(["this is a string",1]);
+myList.push(["this is a string",2]);
+myList.push(["this is a string",3]);
+myList.push(["this is a string",4]);
+
+** end of script.js **
+

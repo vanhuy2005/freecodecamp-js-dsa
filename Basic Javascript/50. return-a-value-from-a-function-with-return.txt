@@ -1,0 +1,10 @@
+** start of script.js **
+
+function timesFive (arg1){
+  return arg1 * 5;
+}
+
+const answer = timesFive(5)
+
+** end of script.js **
+

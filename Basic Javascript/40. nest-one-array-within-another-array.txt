@@ -1,0 +1,7 @@
+** start of script.js **
+
+// Only change code below this line
+const myArray = [["this is the first array", 1], ["this is the second array", 2]];
+
+** end of script.js **
+

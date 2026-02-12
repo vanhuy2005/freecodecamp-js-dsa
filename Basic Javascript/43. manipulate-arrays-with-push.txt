@@ -1,0 +1,13 @@
+** start of script.js **
+
+// Setup
+const myArray = [["John", 23], ["cat", 2]];
+
+//push method, in array structure
+
+myArray.push(["dog",3]);
+// Only change code below this line
+
+
+** end of script.js **
+

@@ -1,0 +1,14 @@
+** start of script.js **
+
+// Setup
+function testEqual(val) {
+  if (val == 12) { // Change this line
+    return "Equal";
+  }
+  return "Not Equal";
+}
+
+testEqual(10);
+
+** end of script.js **
+

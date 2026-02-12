@@ -1,0 +1,7 @@
+** start of script.js **
+
+// Only change code below this line
+const myArray = ["this is String", 8];
+
+** end of script.js **
+
