@@ -1,0 +1,13 @@
+** start of script.js **
+
+function randomFraction() {
+  var aRandomNumber = Math.random()
+  // Only change code below this line
+  return aRandomNumber;
+
+  // Only change code above this line
+}
+console.log(randomFraction());
+
+** end of script.js **
+

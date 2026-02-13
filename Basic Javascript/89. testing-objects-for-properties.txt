@@ -1,0 +1,20 @@
+** start of script.js **
+
+function checkObj(obj, checkProp) {
+  // Only change code below this line
+  var answer = "";
+
+  if (obj.hasOwnProperty(checkProp)){
+    answer = obj[checkProp];
+    return answer;
+  }
+  else return "Not Found";
+  // Only change code above this line
+
+}
+
+console.log(checkObj({gift: "pony", pet: "kitten", bed: "sleigh"}, "gift"));
+
+
+** end of script.js **
+

@@ -1,0 +1,19 @@
+** start of script.js **
+
+function rangeOfNumbers(startNum, endNum) {
+  if (startNum === endNum) {
+    return [startNum];
+  } else {
+    return [startNum, ...rangeOfNumbers(startNum + 1, endNum)];
+  }
+}
+
+console.log(rangeOfNumbers(5,5));
+console.log(rangeOfNumbers(4,5));
+console.log(rangeOfNumbers(3,5));
+
+
+
+
+** end of script.js **
+

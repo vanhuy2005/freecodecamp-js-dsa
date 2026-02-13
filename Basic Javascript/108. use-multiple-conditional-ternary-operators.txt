@@ -1,0 +1,10 @@
+** start of script.js **
+
+function checkSign(num) {
+   return (num > 0 ) ? "positive" : (num < 0) ? "negative" : "zero";
+}
+
+console.log (checkSign(10));
+
+** end of script.js **
+

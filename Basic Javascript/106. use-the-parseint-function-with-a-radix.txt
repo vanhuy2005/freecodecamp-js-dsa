@@ -1,0 +1,10 @@
+** start of script.js **
+
+function convertToInteger(str) {
+  return parseInt(str,2);
+}
+
+console.log(convertToInteger("10011"));
+
+** end of script.js **
+

@@ -1,0 +1,22 @@
+** start of script.js **
+
+const myStorage = {
+  "car": {
+    "inside": {
+      "glove box": "maps",
+      "passenger seat": "crumbs"
+     },
+    "outside": {
+      "trunk": "jack"
+    }
+  }
+};
+
+const gloveBoxContents = "maps";
+
+myStorage.car.inside["glove box"]= gloveBoxContents;
+
+console.log (myStorage);
+
+** end of script.js **
+

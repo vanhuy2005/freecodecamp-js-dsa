@@ -1,0 +1,18 @@
+** start of script.js **
+
+// Setup
+const myArray = [];
+
+//a is the initialization statement
+//b is the condition statement
+//c is the final expression.
+
+for (let i = 1; i <= 5; i++){
+  myArray.push(i);
+}
+console.log(myArray);
+// Only change code below this line
+
+
+** end of script.js **
+
