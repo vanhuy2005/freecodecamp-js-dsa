@@ -1,0 +1,22 @@
+** start of script.js **
+
+
+
+const magic = () => {return new Date()};
+
+//instead of the code below, we can rewrite like this
+
+const magic1 = () =>{
+  const myVar = "value";
+  return myVar;
+}
+
+//or more short cut
+
+const magic2 = () => "key";
+
+console.log(magic());
+console.log( magic2() ); //key
+
+** end of script.js **
+
