@@ -1,312 +1,1252 @@
-Compare Scopes of the var and let Keywords
-If you are unfamiliar with let, check out this challenge about the difference between let and var.
+# 📘 ES6 (ECMAScript 2015) - Tổng hợp kiến thức chi tiết
 
-When you declare a variable with the var keyword, it is declared globally, or locally if declared inside a function.
+> **29 bài học** từ freeCodeCamp JavaScript Algorithms and Data Structures
+> Tài liệu hệ thống hóa: Key Takeaway, Ứng dụng thực tế, Lỗi thường gặp & Câu hỏi phỏng vấn
 
-The let keyword behaves similarly, but with some extra features. When you declare a variable with the let keyword inside a block, statement, or expression, its scope is limited to that block, statement, or expression.
+---
 
-For example:
+## Mục lục
 
-var numArray = [];
+| #     | Chủ đề                                                                | Nhóm              |
+| ----- | --------------------------------------------------------------------- | ----------------- |
+| 1     | [var vs let - Scope](#1-var-vs-let---scope)                           | Biến & Hằng       |
+| 2     | [const với Array - Mutation](#2-const-với-array---mutation)           | Biến & Hằng       |
+| 3     | [Object.freeze()](#3-objectfreeze---ngăn-chặn-mutation)               | Biến & Hằng       |
+| 4     | [Arrow Functions](#4-arrow-functions)                                 | Functions         |
+| 5     | [Arrow Functions with Parameters](#5-arrow-functions-with-parameters) | Functions         |
+| 6     | [Default Parameters](#6-default-parameters)                           | Functions         |
+| 7     | [Rest Parameter](#7-rest-parameter)                                   | Functions         |
+| 8     | [Spread Operator](#8-spread-operator)                                 | Functions         |
+| 9-14  | [Destructuring Assignment](#9-14-destructuring-assignment)            | Destructuring     |
+| 15    | [Template Literals](#15-template-literals)                            | Strings & Objects |
+| 16    | [Object Property Shorthand](#16-object-property-shorthand)            | Strings & Objects |
+| 17    | [Concise Methods](#17-concise-declarative-functions)                  | Strings & Objects |
+| 18    | [Class Syntax](#18-class-syntax)                                      | OOP               |
+| 19    | [Getters & Setters](#19-getters--setters)                             | OOP               |
+| 20-25 | [Modules (import/export)](#20-25-modules---importexport)              | Modules           |
+| 26-29 | [Promises](#26-29-promises)                                           | Async             |
+
+---
+
+## NHÓM 1: BIẾN & HẰNG (Bài 1-3)
+
+---
+
+### 1. var vs let - Scope
+
+**Bản chất:** `var` có **function scope**, `let` có **block scope** (giới hạn trong `{}`)
+
+```js
+// var - function scope (hoặc global nếu khai báo ngoài function)
+for (var i = 0; i < 3; i++) {}
+console.log(i); // 3 ← vẫn truy cập được!
+
+// let - block scope
+for (let j = 0; j < 3; j++) {}
+console.log(j); // ReferenceError: j is not defined
+```
+
+**Vấn đề kinh điển với var trong closure:**
+
+```js
+// ❌ var - tất cả callback đều tham chiếu cùng 1 biến i
+var funcs = [];
 for (var i = 0; i < 3; i++) {
-  numArray.push(i);
+  funcs.push(() => i);
 }
-console.log(numArray);
-console.log(i);
-Here the console will display the values [0, 1, 2] and 3.
+console.log(funcs[0]()); // 3 (không phải 0!)
+console.log(funcs[1]()); // 3 (không phải 1!)
 
-With the var keyword, i is declared globally. So when i++ is executed, it updates the global variable. This code is similar to the following:
-
-var numArray = [];
-var i;
-for (i = 0; i < 3; i++) {
-  numArray.push(i);
-}
-console.log(numArray);
-console.log(i);
-Here the console will display the values [0, 1, 2] and 3.
-
-This behavior will cause problems if you were to create a function and store it for later use inside a for loop that uses the i variable. This is because the stored function will always refer to the value of the updated global i variable.
-
-var printNumTwo;
-for (var i = 0; i < 3; i++) {
-  if (i === 2) {
-    printNumTwo = function() {
-      return i;
-    };
-  }
-}
-console.log(printNumTwo());
-Here the console will display the value 3.
-
-As you can see, printNumTwo() prints 3 and not 2. This is because the value assigned to i was updated and the printNumTwo() returns the global i and not the value i had when the function was created in the for loop. The let keyword does not follow this behavior:
-
-let printNumTwo;
+// ✅ let - mỗi iteration tạo 1 biến i riêng
+var funcs2 = [];
 for (let i = 0; i < 3; i++) {
-  if (i === 2) {
-    printNumTwo = function() {
-      return i;
-    };
+  funcs2.push(() => i);
+}
+console.log(funcs2[0]()); // 0 ✓
+console.log(funcs2[1]()); // 1 ✓
+```
+
+**🔑 Key Takeaway:**
+
+- `let` tạo biến mới cho mỗi iteration trong vòng lặp
+- `var` bị **hoisting** lên đầu scope, `let` cũng hoisting nhưng nằm trong **Temporal Dead Zone** (TDZ) - không thể truy cập trước khi khai báo
+- **Luôn dùng `let` thay `var`** trong code hiện đại
+
+**⚠️ Lỗi thường gặp:**
+
+- Dùng `var` trong `for` loop rồi reference biến đó trong callback/setTimeout → nhận giá trị cuối cùng
+- Tưởng `let` không hoisting → thực ra có, nhưng nằm trong TDZ
+
+**🏢 Ứng dụng thực tế:**
+
+```js
+// Event listener trong loop
+const buttons = document.querySelectorAll(".btn");
+for (let i = 0; i < buttons.length; i++) {
+  buttons[i].addEventListener("click", () => {
+    console.log(`Button ${i} clicked`); // Đúng nhờ let
+  });
+}
+```
+
+---
+
+### 2. const với Array - Mutation
+
+**Bản chất:** `const` ngăn **gán lại** (reassign) biến, nhưng **KHÔNG ngăn thay đổi nội dung** (mutate) của object/array
+
+```js
+const s = [5, 6, 7];
+s = [1, 2, 3]; // ❌ TypeError: Assignment to constant variable
+s[2] = 45; // ✅ OK → [5, 6, 45]
+s.push(8); // ✅ OK → [5, 6, 45, 8]
+```
+
+**🔑 Key Takeaway:**
+
+- `const` bảo vệ **binding** (liên kết biến ↔ giá trị), không bảo vệ **value**
+- Với primitive (number, string, boolean): `const` = không thay đổi được
+- Với reference type (object, array): `const` = không gán lại được, nhưng nội dung vẫn thay đổi được
+- **Best practice:** Dùng `const` mặc định, chỉ dùng `let` khi cần reassign
+
+**⚠️ Lỗi thường gặp:**
+
+```js
+const arr = [1, 2, 3];
+arr = [...arr, 4]; // ❌ TypeError - không thể reassign
+// Đúng cách:
+arr.push(4); // ✅ mutate trực tiếp
+// Hoặc dùng let nếu cần reassign:
+let arr2 = [1, 2, 3];
+arr2 = [...arr2, 4]; // ✅
+```
+
+---
+
+### 3. Object.freeze() - Ngăn chặn Mutation
+
+**Bản chất:** `Object.freeze()` **đóng băng hoàn toàn** object → không thể thêm/sửa/xóa property
+
+```js
+const obj = { PI: 3.14, E: 2.718 };
+Object.freeze(obj);
+
+obj.PI = 99; // ❌ Silent fail (strict mode → TypeError)
+obj.newProp = "hi"; // ❌ Silent fail
+delete obj.PI; // ❌ Silent fail
+console.log(obj); // { PI: 3.14, E: 2.718 } - không đổi
+```
+
+**🔑 Key Takeaway:**
+
+- `Object.freeze()` chỉ **shallow freeze** → nested object bên trong vẫn mutable
+- Muốn **deep freeze** → phải tự đệ quy hoặc dùng thư viện (lodash, immer)
+- Kết hợp `const` + `Object.freeze()` = bất biến hoàn toàn (với object 1 cấp)
+
+**⚠️ Lỗi thường gặp:**
+
+```js
+const config = {
+  db: { host: "localhost", port: 3306 },
+};
+Object.freeze(config);
+config.db.port = 5432; // ✅ Vẫn thay đổi được! (shallow freeze)
+
+// Deep freeze thủ công:
+function deepFreeze(obj) {
+  Object.keys(obj).forEach((key) => {
+    if (typeof obj[key] === "object" && obj[key] !== null) {
+      deepFreeze(obj[key]);
+    }
+  });
+  return Object.freeze(obj);
+}
+```
+
+**🏢 Ứng dụng thực tế:** Bảo vệ config, constants, API response không bị vô tình sửa đổi
+
+---
+
+## NHÓM 2: FUNCTIONS (Bài 4-8)
+
+---
+
+### 4. Arrow Functions
+
+**Bản chất:** Cú pháp ngắn gọn cho anonymous function, đồng thời **không bind `this`** riêng
+
+```js
+// ES5
+const myFunc = function () {
+  return new Date();
+};
+
+// ES6 arrow function
+const myFunc = () => new Date();
+
+// Có tham số
+const double = (x) => x * 2;
+const double = (x) => x * 2; // 1 param → bỏ ()
+const add = (a, b) => a + b; // 2+ params → giữ ()
+
+// Nhiều dòng → cần {} và return
+const calc = (a, b) => {
+  const sum = a + b;
+  return sum * 2;
+};
+
+// Return object literal → bọc trong ()
+const makeObj = (name) => ({ name }); // ← lưu ý cặp ()
+```
+
+**🔑 Key Takeaway:**
+
+- 1 expression, không `{}` → **tự return** (implicit return)
+- Có `{}` → **phải viết `return`** (explicit return)
+- Arrow function **KHÔNG có `this` riêng** → kế thừa `this` từ scope cha (lexical this)
+- **KHÔNG dùng** làm method trong object literal (vì `this` sẽ không trỏ đến object)
+
+**⚠️ Lỗi thường gặp:**
+
+```js
+// ❌ this trong arrow function không trỏ đến object
+const person = {
+  name: "Huy",
+  greet: () => `Hello ${this.name}`, // this = window/undefined
+};
+
+// ✅ Dùng shorthand method
+const person = {
+  name: "Huy",
+  greet() {
+    return `Hello ${this.name}`;
+  },
+};
+```
+
+**🏢 Ứng dụng thực tế:**
+
+```js
+// Array methods - arrow function rất clean
+const nums = [1, 2, 3, 4, 5];
+const evens = nums.filter((n) => n % 2 === 0);
+const doubled = nums.map((n) => n * 2);
+const sum = nums.reduce((acc, n) => acc + n, 0);
+
+// Callback giữ đúng this
+class Timer {
+  constructor() {
+    this.seconds = 0;
+  }
+  start() {
+    setInterval(() => {
+      this.seconds++;
+    }, 1000); // this = Timer instance
   }
 }
-console.log(printNumTwo());
-console.log(i);
-Here the console will display the value 2, and an error that i is not defined.
+```
 
-i is not defined because it was not declared in the global scope. It is only declared within the for loop statement. printNumTwo() returned the correct value because three different i variables with unique values (0, 1, and 2) were created by the let keyword within the loop statement.
+---
 
-Fix the code so that i declared in the if statement is a separate variable than i declared in the first line of the function. Be certain not to use the var keyword anywhere in your code.
+### 5. Arrow Functions with Parameters
 
-This exercise is designed to illustrate the difference between how var and let keywords assign scope to the declared variable. When programming a function similar to the one used in this exercise, it is often better to use different variable names to avoid confusion.
+**Bản chất:** Truyền tham số vào arrow function — cú pháp linh hoạt tùy số lượng param
 
-
-Mutate an Array Declared with const
-If you are unfamiliar with const, check out this challenge about the const keyword.
-
-The const declaration has many use cases in modern JavaScript.
-
-Some developers prefer to assign all their variables using const by default, unless they know they will need to reassign the value. Only in that case, they use let.
-
-However, it is important to understand that objects (including arrays and functions) assigned to a variable using const are still mutable. Using the const declaration only prevents reassignment of the variable identifier.
-
-const s = [5, 6, 7];
-s = [1, 2, 3];
-s[2] = 45;
-console.log(s);
-s = [1, 2, 3] will result in an error. After commenting out that line, the console.log will display the value [5, 6, 45].
-
-As you can see, you can mutate the object [5, 6, 7] itself and the variable s will still point to the altered array [5, 6, 45]. Like all arrays, the array elements in s are mutable, but because const was used, you cannot use the variable identifier s to point to a different array using the assignment operator.
-
-An array is declared as const s = [5, 7, 2]. Change the array to [2, 5, 7] using various element assignments.
-
-Prevent Object Mutation
-As seen in the previous challenge, const declaration alone doesn't really protect your data from mutation. To ensure your data doesn't change, JavaScript provides a function Object.freeze to prevent data mutation.
-
-Any attempt at changing the object will be rejected, with an error thrown if the script is running in strict mode.
-
-let obj = {
-  name:"FreeCodeCamp",
-  review:"Awesome"
-};
-Object.freeze(obj);
-obj.review = "bad";
-obj.newProp = "Test";
-console.log(obj); 
-The obj.review and obj.newProp assignments will result in errors, because our editor runs in strict mode by default, and the console will display the value { name: "FreeCodeCamp", review: "Awesome" }.
-
-In this challenge you are going to use Object.freeze to prevent mathematical constants from changing. You need to freeze the MATH_CONSTANTS object so that no one is able to alter the value of PI, add, or delete properties.
-
-Use Arrow Functions to Write Concise Anonymous Functions
-In JavaScript, we often don't need to name our functions, especially when passing a function as an argument to another function. Instead, we create inline functions. We don't need to name these functions because we do not reuse them anywhere else.
-
-To achieve this, we often use the following syntax:
-
-const myFunc = function() {
-  const myVar = "value";
-  return myVar;
-}
-ES6 provides us with the syntactic sugar to not have to write anonymous functions this way. Instead, you can use arrow function syntax:
-
-const myFunc = () => {
-  const myVar = "value";
-  return myVar;
-}
-When there is no function body, and only a return value, arrow function syntax allows you to omit the keyword return as well as the brackets surrounding the code. This helps simplify smaller functions into one-line statements:
-
-const myFunc = () => "value";
-This code will still return the string value by default.
-
-Rewrite the function assigned to the variable magic which returns a new Date() to use arrow function syntax. Also, make sure nothing is defined using the keyword var.
-
-Write Arrow Functions with Parameters
-Just like a regular function, you can pass arguments into an arrow function.
-
+```js
+// 1 tham số → có thể bỏ ()
 const doubler = (item) => item * 2;
-doubler(4);
-doubler(4) would return the value 8.
+doubler(4); // 8
 
-If an arrow function has a single parameter, the parentheses enclosing the parameter may be omitted.
-
-const doubler = item => item * 2;
-It is possible to pass more than one argument into an arrow function.
-
+// 2+ tham số → bắt buộc có ()
 const multiplier = (item, multi) => item * multi;
-multiplier(4, 2);
-multiplier(4, 2) would return the value 8.
+multiplier(4, 2); // 8
 
-Rewrite the myConcat function which appends contents of arr2 to arr1 so that the function uses arrow function syntax.
+// Bài tập: rewrite myConcat bằng arrow function
+const myConcat = (arr1, arr2) => {
+  "use strict";
+  return arr1.concat(arr2);
+};
+console.log(myConcat([1, 2], [3, 4, 5])); // [1, 2, 3, 4, 5]
+```
 
+**🔑 Key Takeaway:**
 
-Set Default Parameters for Your Functions
-In order to help us create more flexible functions, ES6 introduces default parameters for functions.
+- 0 param: `() => ...` — bắt buộc `()`
+- 1 param: `x => ...` — bỏ `()` được
+- 2+ params: `(a, b) => ...` — bắt buộc `()`
+- Arrow function dùng nhiều nhất trong `.map()`, `.filter()`, `.reduce()`, callback
 
-Check out this code:
+**⚠️ Lỗi thường gặp:**
 
-const greeting = (name = "Anonymous") => "Hello " + name;
+```js
+// ❌ 2 params mà bỏ () → SyntaxError
+const add = a, b => a + b; // SyntaxError
+// ✅
+const add = (a, b) => a + b;
 
-console.log(greeting("John"));
-console.log(greeting());
-The console will display the strings Hello John and Hello Anonymous.
+// ❌ Destructure param mà bỏ () → SyntaxError
+const fn = { name } => name; // SyntaxError
+// ✅
+const fn = ({ name }) => name;
+```
 
-The default parameter kicks in when the argument is not specified (it is undefined). As you can see in the example above, the parameter name will receive its default value Anonymous when you do not provide a value for the parameter. You can add default values for as many parameters as you want.
+---
 
-Modify the function increment by adding default parameters so that it will add 1 to number if value is not specified.
+### 6. Default Parameters
 
-Use the Spread Operator to Evaluate Arrays In-Place
-ES6 introduces the spread operator, which allows us to expand arrays and other expressions in places where multiple parameters or elements are expected.
+**Bản chất:** Gán giá trị mặc định cho tham số khi không truyền hoặc truyền `undefined`
 
-The ES5 code below uses apply() to compute the maximum value in an array:
+```js
+const increment = (number, value = 1) => number + value;
 
-var arr = [6, 89, 3, 45];
-var maximus = Math.max.apply(null, arr);
-maximus would have a value of 89.
+console.log(increment(5, 2)); // 7
+console.log(increment(5)); // 6 (value mặc định = 1)
+```
 
-We had to use Math.max.apply(null, arr) because Math.max(arr) returns NaN. Math.max() expects comma-separated arguments, but not an array. The spread operator makes this syntax much better to read and maintain.
+**🔑 Key Takeaway:**
 
-const arr = [6, 89, 3, 45];
-const maximus = Math.max(...arr);
-maximus would have a value of 89.
+- Default chỉ kích hoạt khi argument là `undefined` (không phải `null`, `0`, `""`, `false`)
+- Default parameter có thể tham chiếu parameter trước nó: `(a, b = a * 2)`
+- Đặt tham số có default **ở cuối** danh sách tham số
 
-...arr returns an unpacked array. In other words, it spreads the array. However, the spread operator only works in-place, like in an argument to a function or in an array literal. For example:
+**⚠️ Lỗi thường gặp:**
 
-const spreaded = [...arr];
-However, the following code will not work:
+```js
+const fn = (a = 1, b) => a + b;
+fn(undefined, 2); // 3 - phải truyền undefined để dùng default → code xấu
+// ✅ Đặt default cuối: (b, a = 1)
 
-const spreaded = ...arr;
-Copy all contents of arr1 into another array arr2 using the spread operator
+// null KHÔNG trigger default
+const fn2 = (x = 10) => x;
+fn2(null); // null (không phải 10!)
+fn2(); // 10
+```
 
-Use Destructuring Assignment to Extract Values from Objects
-Destructuring assignment is special syntax introduced in ES6, for neatly assigning values taken directly from an object.
+**🏢 Ứng dụng thực tế:**
 
-Consider the following ES5 code:
+```js
+// API request với default options
+function fetchData(
+  url,
+  method = "GET",
+  headers = { "Content-Type": "application/json" },
+) {
+  return fetch(url, { method, headers });
+}
 
-const user = { name: 'John Doe', age: 34 };
+// Component với default props
+const Button = ({ text = "Click me", color = "blue", size = "md" }) => {
+  /* ... */
+};
+```
 
+---
+
+### 7. Rest Parameter
+
+**Bản chất:** `...args` gom **nhiều arguments** thành **1 array thực sự** (true array)
+
+```js
+const sum = (...args) => {
+  return args.reduce((total, num) => total + num, 0);
+};
+
+console.log(sum(1, 2, 3)); // 6
+console.log(sum(1, 2, 3, 4)); // 10
+```
+
+**🔑 Key Takeaway:**
+
+- Rest parameter **phải ở cuối** danh sách tham số: `(a, b, ...rest)` ✅
+- `...rest` tạo **Array thực** (khác `arguments` object trong ES5 - không phải array)
+- Một function chỉ có **1 rest parameter**
+
+**So sánh với `arguments` (ES5):**
+
+```js
+// ES5 - arguments là array-like, không có .map(), .filter()
+function old() {
+  return Array.from(arguments).reduce((a, b) => a + b);
+}
+
+// ES6 - rest là Array thực
+const modern = (...nums) => nums.reduce((a, b) => a + b);
+```
+
+**🏢 Ứng dụng thực tế:**
+
+```js
+// Wrapper function
+function log(level, ...messages) {
+  console[level](...messages);
+}
+log("warn", "Disk space low", "Only 2GB remaining");
+
+// Middleware pattern
+const pipe =
+  (...fns) =>
+  (x) =>
+    fns.reduce((v, f) => f(v), x);
+const transform = pipe(double, addOne, square);
+```
+
+---
+
+### 8. Spread Operator
+
+**Bản chất:** `...` **trải** (unpack) array/iterable ra thành các phần tử riêng lẻ
+
+```js
+const arr1 = ["JAN", "FEB", "MAR"];
+const arr2 = [...arr1]; // Copy array
+console.log(arr2); // ['JAN', 'FEB', 'MAR']
+
+// Truyền vào function
+const nums = [6, 89, 3, 45];
+Math.max(...nums); // 89 (thay vì Math.max.apply(null, nums))
+```
+
+**🔑 Key Takeaway:**
+
+- **Spread** = trải ra (dùng ở phía phải `=`, trong `[]`, trong argument)
+- **Rest** = gom lại (dùng ở phía trái `=`, trong parameter)
+- Cùng cú pháp `...` nhưng **ngược nhau** về chức năng
+- Spread tạo **shallow copy** (1 cấp)
+
+**So sánh Rest vs Spread:**
+| | Rest | Spread |
+|---|------|--------|
+| Vị trí | Parameter / destructuring | Argument / array literal |
+| Chức năng | Gom nhiều → 1 array | Trải 1 array → nhiều |
+| Ví dụ | `(...args) => {}` | `Math.max(...arr)` |
+
+**🏢 Ứng dụng thực tế:**
+
+```js
+// Merge arrays
+const all = [...frontend, ...backend];
+
+// Merge objects
+const merged = { ...defaults, ...userConfig };
+
+// Clone + override
+const updated = { ...user, name: "New Name" };
+
+// Chuyển NodeList → Array
+const divs = [...document.querySelectorAll("div")];
+```
+
+---
+
+## NHÓM 3: DESTRUCTURING (Bài 9-14)
+
+---
+
+### 9-14. Destructuring Assignment
+
+Destructuring là cú pháp **tách giá trị** từ object/array ra thành biến riêng.
+
+#### 9. Extract từ Object (cơ bản)
+
+```js
+const user = { name: "John", age: 34 };
+
+// ES5
 const name = user.name;
 const age = user.age;
-name would have a value of the string John Doe, and age would have the number 34.
 
-Here's an equivalent assignment statement using the ES6 destructuring syntax:
-
+// ES6 destructuring
 const { name, age } = user;
-Again, name would have a value of the string John Doe, and age would have the number 34.
+// name = 'John', age = 34
+```
 
-Here, the name and age variables will be created and assigned the values of their respective values from the user object. You can see how much cleaner this is.
+#### 10. Đổi tên biến khi destructure
 
-You can extract as many or few values from the object as you want.
-
-Replace the two assignments with an equivalent destructuring assignment. It should still assign the variables today and tomorrow the values of today and tomorrow from the HIGH_TEMPERATURES object.
-
-Use Destructuring Assignment to Assign Variables from Objects
-Destructuring allows you to assign a new variable name when extracting values. You can do this by putting the new name after a colon when assigning the value.
-
-Using the same object from the last example:
-
-const user = { name: 'John Doe', age: 34 };
-Here's how you can give new variable names in the assignment:
-
+```js
 const { name: userName, age: userAge } = user;
-You may read it as "get the value of user.name and assign it to a new variable named userName" and so on. The value of userName would be the string John Doe, and the value of userAge would be the number 34.
+// userName = 'John', userAge = 34
+// Đọc: "lấy user.name gán vào biến userName"
+```
 
-Replace the two assignments with an equivalent destructuring assignment. It should still assign the variables highToday and highTomorrow the values of today and tomorrow from the HIGH_TEMPERATURES object.
+#### 11. Destructure Nested Object
 
-Use Destructuring Assignment to Assign Variables from Nested Objects
-You can use the same principles from the previous two lessons to destructure values from nested objects.
+```js
+const forecast = {
+  today: { low: 64, high: 77 },
+};
 
-Using an object similar to previous examples:
+const {
+  today: { low: lowToday, high: highToday },
+} = forecast;
+// lowToday = 64, highToday = 77
+```
 
-const user = {
-  johnDoe: { 
-    age: 34,
-    email: 'johnDoe@freeCodeCamp.com'
+#### 12. Destructure Array
+
+```js
+const [a, b] = [1, 2, 3, 4];
+// a = 1, b = 2
+
+// Bỏ qua phần tử bằng dấu phẩy
+const [first, , , fourth] = [1, 2, 3, 4];
+// first = 1, fourth = 4
+
+// ⭐ Swap giá trị không cần biến tạm!
+let x = 8,
+  y = 6;
+[x, y] = [y, x];
+// x = 6, y = 8
+```
+
+#### 13. Destructure + Rest (Array)
+
+```js
+const [first, second, ...rest] = [1, 2, 3, 4, 5, 6];
+// first = 1, second = 2, rest = [3, 4, 5, 6]
+
+// Ứng dụng: bỏ 2 phần tử đầu (giống slice(2))
+function removeFirstTwo(list) {
+  const [, , ...shorterList] = list;
+  return shorterList;
+}
+```
+
+#### 14. Destructure trong Function Parameter
+
+```js
+// ❌ Truyền cả object rồi tách bên trong
+const half = (stats) => (stats.max + stats.min) / 2;
+
+// ✅ Destructure ngay tại parameter
+const half = ({ max, min }) => (max + min) / 2;
+
+// Kết hợp default
+const greet = ({ name = "Guest", age = 0 } = {}) => {
+  return `${name} is ${age}`;
+};
+```
+
+**🔑 Key Takeaway:**
+
+- Object destructuring: dùng `{}`, match theo **tên property**
+- Array destructuring: dùng `[]`, match theo **vị trí index**
+- Có thể kết hợp: đổi tên, default value, nested, rest
+- Destructure tại parameter giúp code rõ ràng, chỉ lấy field cần thiết
+
+**⚠️ Lỗi thường gặp:**
+
+```js
+// ❌ Quên khai báo let/const
+{ name, age } = user; // SyntaxError
+// ✅
+const { name, age } = user;
+// hoặc nếu biến đã tồn tại:
+({ name, age } = user); // bọc trong ()
+
+// ❌ Destructure từ undefined/null
+const { a } = undefined; // TypeError
+// ✅ Dùng default
+const { a } = undefined || {};
+```
+
+**🏢 Ứng dụng thực tế:**
+
+```js
+// React component
+const UserCard = ({ name, avatar, email }) => (
+  <div>
+    <img src={avatar} />
+    <h2>{name}</h2>
+    <p>{email}</p>
+  </div>
+);
+
+// API response
+const {
+  data: { users, total },
+  status,
+} = await axios.get("/api/users");
+
+// Import cụ thể từ module
+const { useState, useEffect } = React;
+
+// Swap biến
+[arr[i], arr[j]] = [arr[j], arr[i]]; // Dùng trong sorting
+```
+
+---
+
+## NHÓM 4: STRINGS & OBJECTS (Bài 15-17)
+
+---
+
+### 15. Template Literals
+
+**Bản chất:** Dùng backtick `` ` `` thay cho quotes, hỗ trợ **nội suy biến** và **multi-line**
+
+```js
+const name = "Huy";
+const age = 20;
+
+// ES5
+const msg = "Hello " + name + ", you are " + age + " years old.";
+
+// ES6 template literal
+const msg = `Hello ${name}, you are ${age} years old.`;
+
+// Multi-line
+const html = `
+  <div class="card">
+    <h2>${name}</h2>
+    <p>Age: ${age}</p>
+  </div>
+`;
+
+// Expression trong ${}
+const price = `Total: $${(100 * 1.1).toFixed(2)}`; // "Total: $110.00"
+```
+
+**Bài tập áp dụng:**
+
+```js
+const result = { failure: ["no-var", "var-on-top", "linebreak"] };
+const failureItems = result.failure.map(
+  (item) => `<li class="text-warning">${item}</li>`,
+);
+```
+
+**🔑 Key Takeaway:**
+
+- Dùng backtick `` ` `` (không phải `'` hay `"`)
+- `${expression}` - có thể chứa biến, phép toán, gọi hàm, ternary
+- Hỗ trợ multi-line tự nhiên, không cần `\n`
+- **Tagged template literals** → nâng cao: `` html`<p>${text}</p>` `` (dùng trong styled-components, GraphQL)
+
+**⚠️ Lỗi thường gặp:**
+
+```js
+// ❌ Dùng nháy đơn/kép thay backtick
+const msg = "Hello ${name}"; // In ra đúng "${name}" chứ không nội suy!
+
+// ❌ Quên backtick khi return object trong arrow function
+const fn = (name) => `{ name: ${name} }`; // String, không phải object!
+```
+
+---
+
+### 16. Object Property Shorthand
+
+**Bản chất:** Khi tên biến trùng tên property → bỏ phần `: value`
+
+```js
+const name = "Huy",
+  age = 20,
+  gender = "male";
+
+// ES5
+const person = { name: name, age: age, gender: gender };
+
+// ES6 shorthand
+const person = { name, age, gender };
+```
+
+**🏢 Ứng dụng thực tế:**
+
+```js
+// Return object từ function
+const getMousePosition = (x, y) => ({ x, y });
+
+// State trong React
+const [count, setCount] = useState(0);
+return { count, setCount }; // thay vì { count: count, setCount: setCount }
+
+// Module export
+module.exports = { router, controller, middleware };
+```
+
+---
+
+### 17. Concise Declarative Functions
+
+**Bản chất:** Bỏ `: function` khi định nghĩa method trong object
+
+```js
+// ES5
+const bike = {
+  gear: 2,
+  setGear: function (newGear) {
+    this.gear = newGear;
+  },
+};
+
+// ES6 concise method
+const bike = {
+  gear: 2,
+  setGear(newGear) {
+    this.gear = newGear;
+  },
+};
+```
+
+**🔑 Key Takeaway:**
+
+- Ngắn gọn hơn, **dùng trong object literal và class**
+- Method shorthand **CÓ `this` riêng** (khác arrow function)
+- Là syntax mặc định trong class
+
+---
+
+## NHÓM 5: OOP - CLASS (Bài 18-19)
+
+---
+
+### 18. Class Syntax
+
+**Bản chất:** `class` là **syntactic sugar** trên prototype-based inheritance của JS
+
+```js
+// ES5 constructor function
+function Vegetable(name) {
+  this.name = name;
+}
+
+// ES6 class
+class Vegetable {
+  constructor(name) {
+    this.name = name;
   }
-};
-Here's how to extract the values of object properties and assign them to variables with the same name:
-
-const { johnDoe: { age, email }} = user;
-And here's how you can assign an object properties' values to variables with different names:
-
-const { johnDoe: { age: userAge, email: userEmail }} = user;
-Replace the two assignments with an equivalent destructuring assignment. It should still assign the variables lowToday and highToday the values of today.low and today.high from the LOCAL_FORECAST object.
-
-Use Destructuring Assignment to Assign Variables from Arrays
-ES6 makes destructuring arrays as easy as destructuring objects.
-
-One key difference between the spread operator and array destructuring is that the spread operator unpacks all contents of an array into a comma-separated list. Consequently, you cannot pick or choose which elements you want to assign to variables.
-
-Destructuring an array lets us do exactly that:
-
-const [a, b] = [1, 2, 3, 4, 5, 6];
-console.log(a, b);
-The console will display the values of a and b as 1, 2.
-
-The variable a is assigned the first value of the array, and b is assigned the second value of the array. We can also access the value at any index in an array with destructuring by using commas to reach the desired index:
-
-const [a, b,,, c] = [1, 2, 3, 4, 5, 6];
-console.log(a, b, c);
-The console will display the values of a, b, and c as 1, 2, 5.
-
-Use destructuring assignment to swap the values of a and b so that a receives the value stored in b, and b receives the value stored in a.
-
-Destructuring via rest elements
-In some situations involving array destructuring, we might want to collect the rest of the elements into a separate array.
-
-The result is similar to Array.prototype.slice(), as shown below:
-
-const [a, b, ...arr] = [1, 2, 3, 4, 5, 7];
-console.log(a, b);
-console.log(arr);
-The console would display the values 1, 2 and [3, 4, 5, 7].
-
-Variables a and b take the first and second values from the array. After that, because of the rest syntax presence, arr gets the rest of the values in the form of an array. The rest element only works correctly as the last variable in the list. As in, you cannot use the rest syntax to catch a subarray that leaves out the last element of the original array.
-
-Use a destructuring assignment with the rest syntax to emulate the behavior of Array.prototype.slice(). removeFirstTwo() should return a sub-array of the original array list with the first two elements omitted.
-
-Use Destructuring Assignment to Pass an Object as a Function's Parameters
-In some cases, you can destructure the object in a function argument itself.
-
-Consider the code below:
-
-const profileUpdate = (profileData) => {
-  const { name, age, nationality, location } = profileData;
-
 }
-This effectively destructures the object sent into the function. This can also be done in-place:
 
-const profileUpdate = ({ name, age, nationality, location }) => {
+const carrot = new Vegetable("carrot");
+console.log(carrot.name); // "carrot"
+```
 
+**Class đầy đủ:**
+
+```js
+class Animal {
+  constructor(name, sound) {
+    this.name = name;
+    this.sound = sound;
+  }
+
+  speak() {
+    return `${this.name} says ${this.sound}`;
+  }
+
+  static create(name, sound) {
+    return new Animal(name, sound);
+  }
 }
-When profileData is passed to the above function, the values are destructured from the function parameter for use within the function.
 
-Use destructuring assignment within the argument to the function half to send only max and min inside the function.
+class Dog extends Animal {
+  constructor(name) {
+    super(name, "Woof"); // Gọi constructor cha
+  }
 
-Create Strings using Template Literals
-A new feature of ES6 is the template literal. This is a special type of string that makes creating complex strings easier.
+  fetch(item) {
+    return `${this.name} fetches ${item}`;
+  }
+}
+```
 
-Template literals allow you to create multi-line strings and to use string interpolation features to create strings.
+**🔑 Key Takeaway:**
 
-Consider the code below:
+- `class` vẫn là function bên dưới (typeof Vegetable === 'function')
+- `constructor()` chạy khi `new` → khởi tạo properties
+- Convention: **PascalCase** cho tên class
+- `class` **KHÔNG hoisting** (khác function declaration)
+- `extends` để kế thừa, `super()` để gọi constructor cha
 
-const person = {
-  name: "Zodiac Hasbro",
-  age: 56
+**⚠️ Lỗi thường gặp:**
+
+```js
+// ❌ Quên new
+const v = Vegetable("carrot"); // TypeError: Cannot call a class as a function
+
+// ❌ Quên super() trong subclass
+class Dog extends Animal {
+  constructor(name) {
+    this.breed = "Lab"; // ❌ ReferenceError - phải gọi super() trước
+    super(name, "Woof");
+  }
+}
+```
+
+---
+
+### 19. Getters & Setters
+
+**Bản chất:** `get`/`set` tạo "virtual property" - truy cập như property, nhưng thực chất là function
+
+```js
+class Thermostat {
+  constructor(fahrenheit) {
+    this._fahrenheit = fahrenheit; // _ convention = private
+  }
+
+  get temperature() {
+    // Getter - đọc giá trị
+    return (5 / 9) * (this._fahrenheit - 32);
+  }
+
+  set temperature(celsius) {
+    // Setter - ghi giá trị
+    this._fahrenheit = (celsius * 9.0) / 5 + 32;
+  }
+}
+
+const thermos = new Thermostat(76); // 76°F
+let temp = thermos.temperature; // 24.44°C (dùng getter)
+thermos.temperature = 26; // Set 26°C (dùng setter)
+temp = thermos.temperature; // 26°C
+```
+
+**🔑 Key Takeaway:**
+
+- Getter/Setter cho phép **validation, computation, logging** khi đọc/ghi
+- Truy cập bằng cú pháp property (không cần `()`): `obj.temperature`, không phải `obj.temperature()`
+- Convention: prefix `_` cho biến "private" (chỉ là convention, vẫn truy cập được)
+- ES2022+: dùng `#` cho **thật sự private**: `#fahrenheit`
+- **Abstraction**: người dùng API không cần biết bên trong lưu °F hay °C
+
+**🏢 Ứng dụng thực tế:**
+
+```js
+class User {
+  #password;
+
+  constructor(name, password) {
+    this.name = name;
+    this.#password = password;
+  }
+
+  get password() {
+    return "****"; // Không bao giờ expose password thật
+  }
+
+  set password(newPass) {
+    if (newPass.length < 8) throw new Error("Password too short");
+    this.#password = newPass;
+  }
+}
+```
+
+---
+
+## NHÓM 6: MODULES (Bài 20-25)
+
+---
+
+### 20-25. Modules - Import/Export
+
+ES6 Module cho phép **chia code thành file riêng**, chỉ chia sẻ phần cần thiết.
+
+#### 20. Tạo Module Script (HTML)
+
+```html
+<script type="module" src="index.js"></script>
+<!-- type="module" → cho phép dùng import/export -->
+<!-- Mặc định strict mode, defer loading, có scope riêng -->
+```
+
+#### 21. Named Export
+
+```js
+// Cách 1: export inline
+export const add = (a, b) => a + b;
+export const subtract = (a, b) => a - b;
+
+// Cách 2: export ở cuối file
+const add = (a, b) => a + b;
+const subtract = (a, b) => a - b;
+export { add, subtract };
+```
+
+#### 22. Named Import
+
+```js
+import { add, subtract } from "./math.js";
+// Chỉ import những gì cần → tree-shaking tốt hơn
+```
+
+#### 23. Import tất cả với `*`
+
+```js
+import * as math from "./math.js";
+math.add(2, 3);
+math.subtract(5, 3);
+// Gom tất cả export vào 1 object
+```
+
+#### 24. Export Default
+
+```js
+// Mỗi file chỉ có 1 default export
+export default function subtract(x, y) {
+  return x - y;
+}
+
+// Hoặc anonymous
+export default (x, y) => x - y;
+
+// ❌ KHÔNG dùng default với var/let/const
+// export default const fn = ... → SyntaxError
+```
+
+#### 25. Import Default
+
+```js
+import subtract from "./math.js";
+// Không cần {}, tên tùy ý
+import anyName from "./math.js"; // cũng OK
+
+// Kết hợp default + named
+import subtract, { add, multiply } from "./math.js";
+```
+
+**🔑 Key Takeaway:**
+
+|               | Named Export                 | Default Export       |
+| ------------- | ---------------------------- | -------------------- |
+| Số lượng/file | Nhiều                        | Chỉ 1                |
+| Import syntax | `{ name }`                   | `name` (không `{}`)  |
+| Đổi tên       | `{ name as alias }`          | Tự do đặt tên        |
+| Use case      | Utility functions, constants | Main component/class |
+
+**⚠️ Lỗi thường gặp:**
+
+```js
+// ❌ Import default bằng {}
+import { subtract } from "./math.js"; // undefined nếu là default export!
+
+// ❌ Quên type="module" trong HTML
+// <script src="app.js"></script> → import/export sẽ báo lỗi
+
+// ❌ Quên đuôi .js trong browser (Node có thể bỏ)
+import { add } from "./math"; // Lỗi trong browser
+```
+
+**🏢 Ứng dụng thực tế:**
+
+```js
+// React component pattern
+// Button.jsx
+export default function Button({ children }) {
+  /* ... */
+}
+export const BUTTON_SIZES = { sm: "small", md: "medium", lg: "large" };
+
+// App.jsx
+import Button, { BUTTON_SIZES } from "./Button";
+```
+
+---
+
+## NHÓM 7: PROMISES - ASYNC (Bài 26-29)
+
+---
+
+### 26-29. Promises
+
+Promise đại diện cho **kết quả của một tác vụ bất đồng bộ** - có thể thành công hoặc thất bại trong tương lai.
+
+#### 26. Tạo Promise
+
+```js
+const myPromise = new Promise((resolve, reject) => {
+  // Tác vụ bất đồng bộ ở đây
+});
+```
+
+#### 27. Resolve & Reject
+
+```js
+const serverRequest = new Promise((resolve, reject) => {
+  const success = true; // Giả lập response từ server
+
+  if (success) {
+    resolve("We got the data"); // Thành công → fulfilled
+  } else {
+    reject("Data not received"); // Thất bại → rejected
+  }
+});
+```
+
+**3 trạng thái của Promise:**
+
+```
+pending (đang chờ) → fulfilled (thành công) qua resolve()
+                   → rejected (thất bại) qua reject()
+```
+
+#### 28. `.then()` - Xử lý thành công
+
+```js
+serverRequest.then((result) => {
+  console.log(result); // "We got the data"
+});
+```
+
+#### 29. `.catch()` - Xử lý thất bại
+
+```js
+serverRequest.catch((error) => {
+  console.log(error); // "Data not received"
+});
+```
+
+**Chain đầy đủ:**
+
+```js
+fetch("/api/users")
+  .then((response) => response.json())
+  .then((data) => {
+    console.log(data);
+    return data.users;
+  })
+  .then((users) => renderUsers(users))
+  .catch((error) => showError(error))
+  .finally(() => hideLoader()); // Luôn chạy dù success hay fail
+```
+
+**🔑 Key Takeaway:**
+
+- Promise giải quyết **callback hell** (pyramid of doom)
+- `.then()` return một Promise mới → **chainable**
+- `.catch()` bắt lỗi từ **bất kỳ `.then()` nào trước đó**
+- Luôn có `.catch()` để xử lý lỗi
+- ES2017: `async/await` là syntactic sugar trên Promise
+
+**⚠️ Lỗi thường gặp:**
+
+```js
+// ❌ Quên return trong .then() chain
+fetch("/api")
+  .then((res) => {
+    res.json();
+  }) // Quên return → next then nhận undefined
+  .then((data) => console.log(data)); // undefined!
+
+// ✅
+fetch("/api")
+  .then((res) => res.json()) // implicit return
+  .then((data) => console.log(data));
+
+// ❌ Quên .catch()
+myPromise.then((data) => process(data)); // Lỗi sẽ bị nuốt
+
+// ❌ Tạo Promise không cần thiết
+const bad = () => new Promise((resolve) => resolve(42)); // Anti-pattern
+const good = () => Promise.resolve(42); // Hoặc async () => 42
+```
+
+**🏢 Ứng dụng thực tế:**
+
+```js
+// Async/await (sugar trên Promise)
+async function getUsers() {
+  try {
+    const response = await fetch("/api/users");
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed:", error);
+  }
+}
+
+// Promise.all - chạy song song
+const [users, posts, comments] = await Promise.all([
+  fetch("/api/users").then((r) => r.json()),
+  fetch("/api/posts").then((r) => r.json()),
+  fetch("/api/comments").then((r) => r.json()),
+]);
+
+// Promise.race - lấy kết quả nhanh nhất
+const result = await Promise.race([
+  fetch("/api/data"),
+  new Promise((_, reject) => setTimeout(() => reject("Timeout"), 5000)),
+]);
+```
+
+---
+
+## 💼 CÂU HỎI PHỎNG VẤN THƯỜNG GẶP
+
+### Cơ bản
+
+**Q1: `var`, `let`, `const` khác nhau thế nào?**
+| | var | let | const |
+|---|-----|-----|-------|
+| Scope | Function | Block | Block |
+| Hoisting | Có (init = undefined) | Có (TDZ) | Có (TDZ) |
+| Reassign | ✅ | ✅ | ❌ |
+| Redeclare | ✅ | ❌ | ❌ |
+
+> **Trả lời ngắn:** `var` có function scope và hoisting, `let` có block scope và cho phép reassign, `const` có block scope và không cho reassign. Cả `let` và `const` đều có Temporal Dead Zone.
+
+---
+
+**Q2: Arrow function khác regular function thế nào?**
+
+- Không có `this` riêng (lexical this)
+- Không có `arguments` object
+- Không thể dùng làm constructor (`new`)
+- Không có `prototype` property
+- Không thể dùng `yield` (không phải generator)
+
+> **Trả lời ngắn:** Arrow function kế thừa `this` từ scope cha (lexical this), không có `arguments`, không thể `new`. Phù hợp cho callback, không phù hợp cho method cần `this`.
+
+---
+
+**Q3: Spread và Rest khác nhau thế nào?**
+
+> Cùng cú pháp `...` nhưng: **Rest** gom nhiều thành 1 array (dùng ở parameter/destructuring), **Spread** trải 1 array thành nhiều (dùng ở argument/array literal).
+
+---
+
+**Q4: Destructuring là gì? Cho ví dụ?**
+
+> Destructuring là cú pháp tách giá trị từ array/object thành biến riêng. Ví dụ: `const { name, age } = user` hoặc `const [first, ...rest] = arr`. Hỗ trợ nested, rename, default value.
+
+---
+
+### Trung bình
+
+**Q5: `Object.freeze()` khác `const` thế nào?**
+
+> `const` ngăn reassign biến, `Object.freeze()` ngăn mutate object. `const obj = {}; obj.a = 1` vẫn OK, nhưng `Object.freeze(obj); obj.a = 2` sẽ fail. Freeze chỉ shallow - nested object vẫn mutable.
+
+---
+
+**Q6: Template literal có thể làm gì ngoài string interpolation?**
+
+> Multi-line strings, tagged templates (ví dụ styled-components: `` css`color: ${color}` ``), và có thể chứa expression/function call trong `${}`.
+
+---
+
+**Q7: Named export vs default export - khi nào dùng cái nào?**
+
+> **Default**: khi file chỉ export 1 thứ chính (component, class). **Named**: khi export nhiều utilities, constants. Một file có thể kết hợp cả hai.
+
+---
+
+**Q8: Promise có mấy trạng thái? Giải thích?**
+
+> 3 trạng thái: **pending** (đang chờ), **fulfilled** (thành công qua `resolve()`), **rejected** (thất bại qua `reject()`). Một khi đã settled (fulfilled/rejected) thì không thay đổi được nữa.
+
+---
+
+### Nâng cao
+
+**Q9: Giải thích Temporal Dead Zone (TDZ)?**
+
+> TDZ là khoảng thời gian từ khi vào scope đến khi biến `let`/`const` được khai báo. Truy cập biến trong TDZ → `ReferenceError`. Giúp phát hiện bug sớm hơn so với `var` (trả về `undefined`).
+
+```js
+console.log(a); // undefined (var hoisting)
+var a = 1;
+
+console.log(b); // ReferenceError (TDZ)
+let b = 2;
+```
+
+---
+
+**Q10: `Promise.all` vs `Promise.allSettled` vs `Promise.race` vs `Promise.any`?**
+| Method | Resolve khi | Reject khi |
+|--------|------------|------------|
+| `all` | Tất cả fulfilled | Bất kỳ 1 rejected |
+| `allSettled` | Tất cả settled | Không bao giờ reject |
+| `race` | 1 cái settled đầu tiên | 1 cái settled đầu tiên (nếu reject) |
+| `any` | 1 cái fulfilled đầu tiên | Tất cả rejected |
+
+---
+
+**Q11: Class trong JS có thật sự là class (như Java/C++) không?**
+
+> Không. Class trong JS chỉ là **syntactic sugar** trên prototype chain. `typeof MyClass === 'function'`. Inheritance vẫn dựa trên prototype, không phải classical inheritance.
+
+---
+
+**Q12: Getter/Setter khác method thường thế nào?**
+
+> Getter/setter truy cập bằng cú pháp property (`obj.prop`), không cần `()`. Cho phép tạo computed/virtual properties, thêm validation, logging mà consumer không biết.
+
+---
+
+## 📋 CHEAT SHEET TỔNG HỢP
+
+```js
+// 1. let/const thay var
+let changeable = 1;
+const fixed = 2;
+
+// 2-3. Immutability
+const arr = [1, 2, 3]; // Mutable content, immutable binding
+Object.freeze(obj); // Immutable (shallow)
+
+// 4. Arrow function
+const fn = (a, b) => a + b;
+
+// 5. Default params
+const greet = (name = "World") => `Hello ${name}`;
+
+// 6-7. Rest & Spread
+const sum = (...nums) => nums.reduce((a, b) => a + b);
+const copy = [...original];
+
+// 8-13. Destructuring
+const { a, b: renamed } = obj;
+const [first, ...rest] = arr;
+const fn = ({ x, y }) => x + y;
+
+// 14. Template literals
+const msg = `Hello ${name}, ${1 + 1} is two`;
+
+// 15-16. Object shorthand
+const obj = {
+  name,
+  age,
+  greet() {
+    return this.name;
+  },
 };
 
-const greeting = `Hello, my name is ${person.name}!
-I am ${person.age} years old.`;
+// 17-18. Class
+class Dog extends Animal {
+  constructor(name) {
+    super(name);
+  }
+  get info() {
+    return this._info;
+  }
+  set info(val) {
+    this._info = val;
+  }
+}
 
-console.log(greeting);
-The console will display the strings Hello, my name is Zodiac Hasbro! and I am 56 years old..
+// 20-25. Modules
+export const fn = () => {};
+export default class Main {}
+import Main, { fn } from "./module.js";
+import * as all from "./module.js";
 
-A lot of things happened there. Firstly, the example uses backticks (`), not quotes (' or "), to wrap the string. Secondly, notice that the string is multi-line, both in the code and the output. This saves inserting \n within strings. The ${variable} syntax used above is a placeholder. Basically, you won't have to use concatenation with the + operator anymore. To add variables to strings, you just drop the variable in a template string and wrap it with ${ and }. Similarly, you can include other expressions in your string literal, for example ${a + b}. This new way of creating strings gives you more flexibility to create robust strings.
+// 26-29. Promise
+new Promise((resolve, reject) => {
+  /* ... */
+})
+  .then((data) => {
+    /* ... */
+  })
+  .catch((err) => {
+    /* ... */
+  })
+  .finally(() => {
+    /* ... */
+  });
+```
 
-Use template literal syntax with backticks to create an array of list element (li) strings. Each list element's text should be one of the array elements from the failure property on the result object and have a class attribute with the value text-warning. The makeList function should return the array of list item strings.
+---
 
-Use an iterator method (any kind of loop) to get the desired output (shown below).
-
-[
-  '<li class="text-warning">no-var</li>',
-  '<li class="text-warning">var-on-top</li>',
-  '<li class="text-warning">linebreak</li>'
-]
-
+> **Lời khuyên cuối:** ES6 là nền tảng bắt buộc trong JavaScript hiện đại. Hãy thực hành viết code ES6 hàng ngày - dùng `const/let`, arrow functions, destructuring, template literals trong mọi project. Khi phỏng vấn, không chỉ biết cú pháp mà phải hiểu **tại sao** ES6 giải quyết vấn đề tốt hơn ES5.

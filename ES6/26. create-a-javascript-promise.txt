@@ -1,0 +1,8 @@
+** start of script.js **
+
+const makeServerRequest = new Promise ((resolve, reject)=>{
+
+});
+
+** end of script.js **
+

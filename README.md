@@ -9,7 +9,7 @@
 | #   | Section                                            | Status |
 | --- | -------------------------------------------------- | ------ |
 | 1   | [Basic JavaScript](./Basic%20Javascript/)          | ✅     |
-| 2   | ES6                                                | ⬜     |
+| 2   | [ES6](./ES6/)                                      | ✅     |
 | 3   | Regular Expressions                                | ⬜     |
 | 4   | Debugging                                          | ⬜     |
 | 5   | Basic Data Structures                              | ⬜     |
