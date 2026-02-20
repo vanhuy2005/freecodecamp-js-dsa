@@ -1,0 +1,7 @@
+** start of script.js **
+
+let reCriminals = /C+/; // Change this line
+console.log (reCriminals)
+
+** end of script.js **
+
