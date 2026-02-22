@@ -1,0 +1,10 @@
+** start of script.js **
+
+let movieName = "2001: A Space Odyssey";
+let noNumRegex = /\D/gi; // Change this line
+let result = movieName.match(noNumRegex).length;
+
+console.log(result)
+
+** end of script.js **
+
