@@ -7,19 +7,21 @@
 
 ## Mục lục
 
-| #     | Chủ đề                                                                    | Nhóm             |
-| ----- | ------------------------------------------------------------------------- | ---------------- |
-| 1-2   | [Phương thức cơ bản: test() & match()](#1-phương-thức-cơ-bản-test--match) | Cơ bản           |
-| 3-4   | [Flags: i, g](#2-flags---cờ-regex)                                        | Cơ bản           |
-| 5     | [Alternation (OR)](#3-alternation--toán-tử-or)                            | Pattern matching |
-| 6     | [Wildcard Period (.)](#4-wildcard-period--dấu-chấm)                       | Pattern matching |
-| 7-10  | [Character Classes & Ranges](#5-character-classes--ranges)                | Pattern matching |
-| 11    | [Negated Character Sets](#6-negated-character-sets--tập-ký-tự-phủ-định)   | Pattern matching |
-| 12-13 | [Quantifiers: + và \*](#7-quantifiers--bộ-định-lượng)                     | Quantifiers      |
-| 14    | [Greedy vs Lazy Matching](#8-greedy-vs-lazy-matching)                     | Quantifiers      |
-| 15    | [Thực hành: Find Criminals](#9-thực-hành-find-criminals)                  | Thực hành        |
-| 16-17 | [Anchors: ^ và $](#10-anchors--neo-vị-trí)                                | Position         |
-| 18-21 | [Shorthand Character Classes](#11-shorthand-character-classes)            | Shorthand        |
+| #     | Chủ đề                                                                              | Nhóm             |
+| ----- | ----------------------------------------------------------------------------------- | ---------------- |
+| 1-2   | [Phương thức cơ bản: test() & match()](#1-phương-thức-cơ-bản-test--match)           | Cơ bản           |
+| 3-4   | [Flags: i, g](#2-flags---cờ-regex)                                                  | Cơ bản           |
+| 5     | [Alternation (OR)](#3-alternation--toán-tử-or)                                      | Pattern matching |
+| 6     | [Wildcard Period (.)](#4-wildcard-period--dấu-chấm)                                 | Pattern matching |
+| 7-10  | [Character Classes & Ranges](#5-character-classes--ranges)                          | Pattern matching |
+| 11    | [Negated Character Sets](#6-negated-character-sets--tập-ký-tự-phủ-định)             | Pattern matching |
+| 12-13 | [Quantifiers: + và \*](#7-quantifiers--bộ-định-lượng)                               | Quantifiers      |
+| 14    | [Greedy vs Lazy Matching](#8-greedy-vs-lazy-matching)                               | Quantifiers      |
+| 15    | [Thực hành: Find Criminals](#9-thực-hành-find-criminals)                            | Thực hành        |
+| 16-17 | [Anchors: ^ và $](#10-anchors--neo-vị-trí)                                          | Position         |
+| 18-24 | [Shorthand Character Classes](#11-shorthand-character-classes)                      | Shorthand        |
+| 22    | [Thực hành: Restrict Possible Usernames](#12-thực-hành-restrict-possible-usernames) | Thực hành        |
+| 25    | [Quantity Specifiers {}](#13-quantity-specifiers--bộ-định-lượng-chính-xác)          | Quantifiers      |
 
 ---
 
@@ -439,6 +441,38 @@ let noNumRegex = /\D/g;
 "2001: A Space Odyssey".match(noNumRegex).length; // 17
 ```
 
+### `\s` — Whitespace = `[\r\t\f\n\v ]`
+
+Khớp: khoảng trắng, tab, xuống dòng, carriage return, form feed.
+
+```js
+let sample = "Whitespace is important in separating words";
+let countWhiteSpace = /\s/g;
+sample.match(countWhiteSpace);
+// [" ", " ", " ", " ", " "] — 5 khoảng trắng
+```
+
+```js
+"Hello World\tTab\nNewline".match(/\s/g);
+// [" ", "\t", "\n"] — space, tab, newline
+```
+
+### `\S` — Non-whitespace = `[^\r\t\f\n\v ]`
+
+Khớp: tất cả những gì **KHÔNG** phải whitespace.
+
+```js
+let sample = "Whitespace is important in separating words";
+let countNonWhiteSpace = /\S/g;
+sample.match(countNonWhiteSpace).length;
+// 38 — tất cả ký tự không phải khoảng trắng
+```
+
+```js
+"Hello World".match(/\S/g);
+// ["H","e","l","l","o","W","o","r","l","d"]
+```
+
 ### Bảng tổng hợp Shorthand
 
 | Shorthand | Tương đương      | Khớp                         | Đối lập |
@@ -454,7 +488,142 @@ let noNumRegex = /\D/g;
 
 ---
 
-## 12. Bảng tổng hợp nhanh — Regex Cheat Sheet
+## 12. Thực hành: Restrict Possible Usernames
+
+Bài tập tổng hợp: Validate username theo các quy tắc:
+
+1. Chỉ dùng ký tự **alphanumeric** (chữ + số)
+2. Số chỉ được nằm ở **cuối** (0 hoặc nhiều)
+3. Username **không được bắt đầu** bằng số
+4. Chữ cái có thể **hoa hoặc thường**
+5. Độ dài **ít nhất 2 ký tự** — nếu đúng 2 thì **cả 2 phải là chữ**
+
+### Cách giải 1 — Dùng Alternation
+
+```js
+let userCheck = /^[a-z][a-z]+\d*$|^[a-z]\d\d+$/i;
+```
+
+**Phân tích:**
+
+```
+^[a-z][a-z]+\d*$    ← Nhánh 1: ≥2 chữ cái, rồi 0+ số
+|                     ← HOẶC
+^[a-z]\d\d+$         ← Nhánh 2: 1 chữ cái, rồi 2+ số
+```
+
+- Nhánh 1: username có **≥2 chữ cái** đầu, theo sau bởi **0 hoặc nhiều số**
+- Nhánh 2: username có **1 chữ cái** đầu, theo sau bởi **2+ chữ số** (đảm bảo ≥2 ký tự)
+
+### Cách giải 2 — Dùng Quantity Specifier
+
+```js
+const userCheck = /^[a-z]([0-9]{2,}|[a-z]+\d*)$/i;
+```
+
+**Phân tích:**
+
+```
+^[a-z]               ← Bắt đầu bằng 1 chữ cái
+(                     ← Nhóm:
+  [0-9]{2,}           ←   2+ chữ số (username ngắn: 1 chữ + 2+ số)
+  |                   ←   HOẶC
+  [a-z]+\d*           ←   1+ chữ cái + 0+ số (username dài)
+)                     ← Kết thúc nhóm
+$/i                   ← Cuối chuỗi, ignore case
+```
+
+### Test cases
+
+```js
+let userCheck = /^[a-z][a-z]+\d*$|^[a-z]\d\d+$/i;
+
+userCheck.test("JackOfAllTrades"); // true  ✓ nhiều chữ, 0 số
+userCheck.test("J"); // false ✗ chỉ 1 ký tự
+userCheck.test("Jo"); // true  ✓ 2 chữ cái
+userCheck.test("J8"); // false ✗ 2 ký tự nhưng có số
+userCheck.test("J83"); // true  ✓ 1 chữ + 2 số
+userCheck.test("Oceans11"); // true  ✓ nhiều chữ + số cuối
+userCheck.test("007"); // false ✗ bắt đầu bằng số
+userCheck.test("9abc"); // false ✗ bắt đầu bằng số
+userCheck.test("A1"); // false ✗ 1 chữ + 1 số (cần ≥2 số)
+```
+
+**🔑 Key Takeaway:**
+
+- Bài này kết hợp: **Anchors** `^$` + **Character Classes** `[a-z]` + **Quantifiers** `+`, `*`, `{n,}` + **Alternation** `|` + **Flag** `i`
+- Khi bài toán phức tạp → chia thành nhiều nhánh bằng `|`, mỗi nhánh xử lý một trường hợp
+
+---
+
+## 13. Quantity Specifiers — Bộ định lượng chính xác
+
+Ngoài `+` (1+) và `*` (0+), regex cho phép chỉ định **số lần lặp chính xác** bằng `{}`.
+
+### `{min,max}` — Từ min đến max lần
+
+```js
+let A4 = "aaaah";
+let A2 = "aah";
+let multipleA = /a{3,5}h/;
+
+multipleA.test(A4); // true  — 4 chữ "a" (trong khoảng 3-5)
+multipleA.test(A2); // false — 2 chữ "a" (ít hơn 3)
+```
+
+```js
+// Bài tập: Match "Oh no" khi có 3-6 chữ "h"
+let ohRegex = /Oh{3,6}\sno/;
+
+ohRegex.test("Ohhh no"); // true  ✓ 3 chữ h
+ohRegex.test("Ohhhh no"); // true  ✓ 4 chữ h
+ohRegex.test("Ohhhhhhh no"); // false ✗ 7 chữ h (quá 6)
+ohRegex.test("Oh no"); // false ✗ 1 chữ h (ít hơn 3)
+```
+
+### `{n}` — Chính xác n lần
+
+```js
+let timRegex = /Tim{4}ber/;
+timRegex.test("Timmmmber"); // true  — đúng 4 chữ "m"
+timRegex.test("Timmmber"); // false — chỉ 3 chữ "m"
+timRegex.test("Timmber"); // false — chỉ 2 chữ "m"
+```
+
+### `{min,}` — Ít nhất min lần (không giới hạn trên)
+
+```js
+let haRegex = /ha{3,}h/;
+haRegex.test("haaah"); // true  — 3 lần
+haRegex.test("haaaah"); // true  — 4 lần
+haRegex.test("haah"); // false — chỉ 2 lần
+```
+
+### Bảng tổng hợp Quantity Specifiers
+
+| Cú pháp | Ý nghĩa             | Ví dụ       | Match            |
+| ------- | ------------------- | ----------- | ---------------- |
+| `{3,5}` | Từ 3 đến 5 lần      | `/a{3,5}/`  | "aaa" → "aaaaa"  |
+| `{3}`   | Chính xác 3 lần     | `/a{3}/`    | "aaa"            |
+| `{3,}`  | Ít nhất 3 lần       | `/a{3,}/`   | "aaa", "aaaa"…   |
+| `+`     | Tương đương `{1,}`  | `/a+/`      | "a", "aa"…       |
+| `*`     | Tương đương `{0,}`  | `/a*/`      | "", "a", "aa"…   |
+| `?`     | Tương đương `{0,1}` | `/colou?r/` | "color","colour" |
+
+**⚠️ Chú ý:**
+
+- `{3,5}` — **KHÔNG có khoảng trắng** giữa số: `{3, 5}` sẽ không hoạt động!
+- `h{3}` chỉ áp dụng cho ký tự **ngay trước** nó (ở đây là `h`), không phải cả chuỗi
+
+**🔑 Key Takeaway:**
+
+- `{min,max}` cho phép kiểm soát **chính xác** số lần lặp
+- `+`, `*`, `?` thực chất là shorthand của `{1,}`, `{0,}`, `{0,1}`
+- Luôn nhớ: quantifier chỉ áp dụng cho **phần tử ngay trước** nó
+
+---
+
+## 14. Bảng tổng hợp nhanh — Regex Cheat Sheet
 
 ### Cú pháp cơ bản
 
@@ -469,11 +638,15 @@ let noNumRegex = /\D/g;
 
 ### Quantifiers
 
-| Cú pháp | Ý nghĩa          | Ví dụ                 |
-| ------- | ---------------- | --------------------- |
-| `+`     | 1 hoặc nhiều lần | `/a+/` → "a","aaa"    |
-| `*`     | 0 hoặc nhiều lần | `/a*/` → "","a","aaa" |
-| `?`     | Lazy modifier    | `/*?/`, `/+?/`        |
+| Cú pháp    | Ý nghĩa                 | Ví dụ                 |
+| ---------- | ----------------------- | --------------------- |
+| `+`        | 1 hoặc nhiều lần `{1,}` | `/a+/` → "a","aaa"    |
+| `*`        | 0 hoặc nhiều lần `{0,}` | `/a*/` → "","a","aaa" |
+| `?`        | 0 hoặc 1 lần `{0,1}`    | `/colou?r/`           |
+| `{n}`      | Chính xác n lần         | `/a{3}/` → "aaa"      |
+| `{n,m}`    | Từ n đến m lần          | `/a{3,5}/`            |
+| `{n,}`     | Ít nhất n lần           | `/a{3,}/`             |
+| `*?`, `+?` | Lazy (ít nhất có thể)   | `/<.*?>/` → `"<h1>"`  |
 
 ### Anchors
 
@@ -500,7 +673,7 @@ let noNumRegex = /\D/g;
 
 ---
 
-## 13. Câu hỏi phỏng vấn thường gặp
+## 15. Câu hỏi phỏng vấn thường gặp
 
 ### Q1: `.test()` khác `.match()` như thế nào?
 
@@ -524,4 +697,16 @@ let noNumRegex = /\D/g;
 
 ### Q6: Làm sao validate username chỉ chứa alphanumeric, số ở cuối, ít nhất 2 ký tự?
 
-→ `/^[a-z][a-z]+\d*$|^[a-z]\d\d+$/i` — Đây là bài Restrict Possible Usernames, kết hợp anchors, character classes, và quantifiers.
+→ `/^[a-z][a-z]+\d*$|^[a-z]\d\d+$/i` — Đây là bài Restrict Possible Usernames, kết hợp anchors, character classes, và quantifiers. Xem chi tiết ở [Section 12](#12-thực-hành-restrict-possible-usernames).
+
+### Q7: `{3,5}` khác gì `{3}` và `{3,}`?
+
+→ `{3,5}` khớp từ **3 đến 5 lần**, `{3}` khớp **chính xác 3 lần**, `{3,}` khớp **ít nhất 3 lần** (không giới hạn trên). Chú ý: **không được có khoảng trắng** trong `{}`.
+
+### Q8: `\s` bao gồm những ký tự nào?
+
+→ `[\r\t\f\n\v ]` — space, carriage return, tab, form feed, newline, vertical tab. Viết hoa `\S` là ngược lại (non-whitespace).
+
+### Q9: Quantifier `+`, `*`, `?` tương đương với `{}` nào?
+
+→ `+` = `{1,}`, `*` = `{0,}`, `?` = `{0,1}`. Đây là shorthand giúp viết ngắn gọn hơn.
