@@ -1,0 +1,8 @@
+** start of script.js **
+
+let favWord = "favorite";
+let favRegex = /favou?rite/; // Change this line
+let result = favRegex.test(favWord);
+
+** end of script.js **
+

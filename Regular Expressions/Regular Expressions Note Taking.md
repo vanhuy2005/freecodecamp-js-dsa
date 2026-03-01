@@ -1,6 +1,6 @@
 # Regular Expressions — Tổng hợp kiến thức & Interview Notes
 
-> Phần tổng hợp từ 21 bài học **Regular Expressions** của freeCodeCamp.  
+> Phần tổng hợp từ 33 bài học **Regular Expressions** của freeCodeCamp.  
 > Hệ thống hóa: Key Takeaway, Code mẫu, Lỗi thường gặp & Câu hỏi phỏng vấn.
 
 ---
@@ -21,7 +21,13 @@
 | 16-17 | [Anchors: ^ và $](#10-anchors--neo-vị-trí)                                          | Position         |
 | 18-24 | [Shorthand Character Classes](#11-shorthand-character-classes)                      | Shorthand        |
 | 22    | [Thực hành: Restrict Possible Usernames](#12-thực-hành-restrict-possible-usernames) | Thực hành        |
-| 25    | [Quantity Specifiers {}](#13-quantity-specifiers--bộ-định-lượng-chính-xác)          | Quantifiers      |
+| 25-27 | [Quantity Specifiers {}](#13-quantity-specifiers--bộ-định-lượng-chính-xác)          | Quantifiers      |
+| 28    | [Check for All or None (?)](#14-check-for-all-or-none--toán-tử-)                    | Quantifiers      |
+| 29    | [Lookaheads: (?=) và (?!)](#15-lookaheads--positive--negative)                      | Advanced         |
+| 30    | [Mixed Grouping: ()](#16-mixed-grouping-of-characters)                              | Advanced         |
+| 31    | [Capture Groups & Backreferences](#17-capture-groups--backreferences)               | Advanced         |
+| 32    | [Search and Replace](#18-search-and-replace-với-capture-groups)                     | Advanced         |
+| 33    | [Thực hành: Remove Whitespace](#19-thực-hành-remove-whitespace)                     | Thực hành        |
 
 ---
 
@@ -623,7 +629,390 @@ haRegex.test("haah"); // false — chỉ 2 lần
 
 ---
 
-## 14. Bảng tổng hợp nhanh — Regex Cheat Sheet
+## 14. Check for All or None — Toán tử `?`
+
+Dùng `?` để đánh dấu phần tử trước nó là **tùy chọn** (optional) — khớp **0 hoặc 1 lần**.
+
+### Ứng dụng: Khác biệt chính tả Anh-Mỹ
+
+```js
+let american = "color";
+let british = "colour";
+let rainbowRegex = /colou?r/;
+
+rainbowRegex.test(american); // true  — "u" xuất hiện 0 lần
+rainbowRegex.test(british); // true  — "u" xuất hiện 1 lần
+```
+
+```js
+// Bài tập: Match cả "favorite" và "favourite"
+let favRegex = /favou?rite/;
+favRegex.test("favorite"); // true  ✓
+favRegex.test("favourite"); // true  ✓
+```
+
+### Ví dụ thêm
+
+```js
+// Có hoặc không có "s" ở cuối (số ít / số nhiều)
+/cars?/.test("car"); // true
+/cars?/.test("cars"); // true
+
+// Protocol http hoặc https
+/https?:\/\//.test("http://example.com"); // true
+/https?:\/\//.test("https://example.com"); // true
+```
+
+**🔑 Key Takeaway:**
+
+- `?` = `{0,1}` — phần tử trước nó **có hoặc không** đều được
+- **2 vai trò của `?`** trong regex:
+  - Sau **ký tự/group**: optional (`colou?r`)
+  - Sau **quantifier** (`*`, `+`): chuyển sang lazy matching (`*?`, `+?`)
+
+---
+
+## 15. Lookaheads — Positive & Negative
+
+Lookahead "nhìn về phía trước" để kiểm tra pattern **mà không tiêu thụ** (consume) ký tự.
+
+### Positive Lookahead `(?=...)` — Phải có phía trước
+
+Khớp nếu phía trước **CÓ** pattern, nhưng **không bao gồm** pattern đó trong kết quả.
+
+```js
+let quit = "qu";
+let quRegex = /q(?=u)/;
+quit.match(quRegex); // ["q"] — khớp "q" vì phía sau có "u"
+```
+
+### Negative Lookahead `(?!...)` — Không được có phía trước
+
+Khớp nếu phía trước **KHÔNG CÓ** pattern.
+
+```js
+let noquit = "qt";
+let qRegex = /q(?!u)/;
+noquit.match(qRegex); // ["q"] — khớp "q" vì phía sau KHÔNG có "u"
+```
+
+### Ứng dụng thực tế: Password Validator
+
+Dùng **nhiều lookahead** để kiểm tra nhiều điều kiện trên cùng một chuỗi.
+
+```js
+// Simple: 3-6 ký tự, ít nhất 1 số
+let checkPass = /(?=\w{3,6})(?=\D*\d)/;
+checkPass.test("abc123"); // true
+checkPass.test("ab"); // false — quá ngắn
+```
+
+```js
+// Bài tập: >5 ký tự, có 2 số liên tiếp
+let pwRegex = /(?=\w{6})(?=\w*\d{2})/;
+
+pwRegex.test("astronaut"); // false — không có 2 số liên tiếp
+pwRegex.test("bana12"); // true  ✓ 6 ký tự, có "12"
+pwRegex.test("abc123"); // true  ✓
+pwRegex.test("ab1c2"); // false — 2 số không liên tiếp
+pwRegex.test("12345"); // false — chỉ có 5 ký tự
+pwRegex.test("astr1on11aut"); // true ✓
+```
+
+### Phân tích chi tiết `(?=\w{6})(?=\w*\d{2})`
+
+```
+(?=\w{6})     ← Lookahead 1: phải có ít nhất 6 word characters
+(?=\w*\d{2})  ← Lookahead 2: ở đâu đó có 2 chữ số liên tiếp
+              ← Cả 2 lookahead đều bắt đầu từ vị trí HIỆN TẠI
+              ← Không tiêu thụ ký tự → có thể kiểm tra nhiều điều kiện
+```
+
+**🔑 Key Takeaway:**
+
+| Lookahead | Cú pháp   | Ý nghĩa                              |
+| --------- | --------- | ------------------------------------ |
+| Positive  | `(?=...)` | Phía trước **phải có** pattern       |
+| Negative  | `(?!...)` | Phía trước **không được có** pattern |
+
+- Lookahead **không consume** ký tự → dùng để kiểm tra **nhiều điều kiện** cùng lúc
+- Rất hữu ích cho **password validation**, **complex matching**
+
+---
+
+## 16. Mixed Grouping of Characters
+
+Dùng dấu ngoặc `()` để nhóm các ký tự và kết hợp với `|` cho pattern phức tạp.
+
+### Cơ bản: Nhóm + Alternation
+
+```js
+// Match "Penguin" hoặc "Pumpkin"
+let testRegex = /P(engu|umpk)in/;
+
+testRegex.test("Penguin"); // true  ✓
+testRegex.test("Pumpkin"); // true  ✓
+testRegex.test("Pippin"); // false ✗
+```
+
+**Phân tích:** Thay vì viết `/Penguin|Pumpkin/`, ta nhóm phần **khác nhau** trong `()`:
+
+```
+P(engu|umpk)in
+│  │     │   │
+│  └─OR──┘   │
+P─────────────in    ← phần chung đầu & cuối
+```
+
+### Bài tập: Validate tên Roosevelt
+
+```js
+// Match "Franklin Roosevelt" hoặc "Eleanor Roosevelt"
+// Cho phép có middle name (tùy chọn)
+let myRegex = /(Franklin|Eleanor) (([A-Z]\.?|[A-Z][a-z]+) )?Roosevelt/;
+
+myRegex.test("Franklin Roosevelt"); // true  ✓
+myRegex.test("Eleanor Roosevelt"); // true  ✓
+myRegex.test("Franklin D. Roosevelt"); // true  ✓
+myRegex.test("Eleanor Anne Roosevelt"); // true  ✓
+myRegex.test("Franklin D Roosevelt"); // true  ✓
+myRegex.test("Theodore Roosevelt"); // false ✗
+```
+
+**Phân tích chi tiết:**
+
+```
+(Franklin|Eleanor)                 ← Tên: Franklin HOẶC Eleanor
+⎵                                  ← Khoảng trắng
+(([A-Z]\.?|[A-Z][a-z]+) )?        ← Middle name (TOÀN BỘ optional):
+  [A-Z]\.?                         ←   Viết tắt: "D" hoặc "D."
+  |                                ←   HOẶC
+  [A-Z][a-z]+                      ←   Tên đầy đủ: "Anne", "Delano"
+  ⎵                                ←   Khoảng trắng sau middle name
+)?                                 ← Toàn bộ middle name là optional
+Roosevelt                          ← Họ
+```
+
+**🔑 Key Takeaway:**
+
+- `()` nhóm các phần của pattern → kết hợp với `|` để tạo **sub-pattern**
+- Giúp viết regex **ngắn gọn hơn** khi pattern có **phần chung đầu/cuối**
+- `(group)?` — toàn bộ nhóm là **optional**
+- `()` cũng tạo **capture group** (sẽ học ở section tiếp)
+
+---
+
+## 17. Capture Groups & Backreferences
+
+### Capture Group `(...)` — Bắt & Lưu pattern
+
+Nội dung khớp trong `()` được **lưu tạm** và có thể tham chiếu lại.
+
+```js
+let repeatStr = "row row row your boat";
+
+// (\w+) bắt 1+ word characters → lưu vào nhóm 1
+// \1 tham chiếu lại nội dung nhóm 1
+let repeatRegex = /(\w+) \1 \1/;
+
+repeatRegex.test(repeatStr); // true
+repeatStr.match(repeatRegex);
+// ["row row row", "row"]
+// ↑ full match     ↑ captured group 1
+```
+
+### Backreference `\1`, `\2`, ... — Tham chiếu ngược
+
+Số thứ tự = **vị trí dấu `(` mở**, tính từ trái sang phải, bắt đầu từ 1.
+
+```js
+// Bắt 2 group
+/(abc)(def)\2\1/.test("abcdefdefabc"); // true
+//  ↑1   ↑2  ↑2 ↑1
+```
+
+### Bài tập: Match số lặp 3 lần
+
+```js
+// Khớp chuỗi gồm ĐÚNG 1 số, lặp lại 3 lần, cách nhau bởi khoảng trắng
+let reRegex = /^(\d+) \1 \1$/;
+
+reRegex.test("42 42 42"); // true  ✓ — "42" lặp 3 lần
+reRegex.test("42 42 42 42"); // false ✗ — lặp 4 lần
+reRegex.test("42 42"); // false ✗ — chỉ lặp 2 lần
+reRegex.test("101 102 103"); // false ✗ — các số khác nhau
+reRegex.test("1 2 3"); // false ✗ — các số khác nhau
+reRegex.test("10 10 10"); // true  ✓
+```
+
+**Phân tích:**
+
+```
+^(\d+) \1 \1$
+│  │    │   │ │
+│  │    │   │ └─ Anchor cuối chuỗi
+│  │    │   └─── Tham chiếu nhóm 1 (lần 3)
+│  │    └──────── Tham chiếu nhóm 1 (lần 2)
+│  └───────────── Capture group 1: 1+ chữ số
+└──────────────── Anchor đầu chuỗi
+```
+
+### `.match()` với Capture Groups
+
+Khi **không có flag `g`**, `.match()` trả về mảng gồm:
+
+- Phần tử `[0]`: full match
+- Phần tử `[1]`, `[2]`,...: các captured group
+
+```js
+"42 42 42".match(/^(\d+) \1 \1$/);
+// ["42 42 42", "42"]
+//   ↑ [0]       ↑ [1]
+
+"abc def".match(/(\w+) (\w+)/);
+// ["abc def", "abc", "def"]
+//   ↑ [0]      ↑[1]   ↑[2]
+```
+
+**⚠️ Lưu ý:** Khi có flag `g`, `.match()` chỉ trả về các full match, **KHÔNG** trả captured groups. Dùng `.matchAll()` nếu cần cả hai.
+
+**🔑 Key Takeaway:**
+
+- `(\w+)` = **bắt** nội dung khớp vào nhóm
+- `\1` = **tham chiếu lại** nội dung nhóm 1 (phải khớp **cùng nội dung**)
+- Capture groups được đánh số tự động: `\1`, `\2`, `\3`,...
+- Dùng `^...$` để đảm bảo khớp **toàn bộ chuỗi**, không chỉ một phần
+
+---
+
+## 18. Search and Replace với Capture Groups
+
+### `.replace()` — Tìm và thay thế
+
+```js
+let wrongText = "The sky is silver.";
+let silverRegex = /silver/;
+wrongText.replace(silverRegex, "blue");
+// "The sky is blue."
+```
+
+### Capture Groups trong replacement: `$1`, `$2`,...
+
+Trong chuỗi replacement, dùng `$1`, `$2`,... để tham chiếu các captured group.
+
+```js
+// Đổi chỗ 2 từ
+"Code Camp".replace(/(\w+)\s(\w+)/, "$2 $1");
+// "Camp Code"
+//   $1="Code", $2="Camp" → replacement: "$2 $1" = "Camp Code"
+```
+
+### Bài tập: Đảo thứ tự 3 từ
+
+```js
+let str = "one two three";
+let fixRegex = /(\w+)\s(\w+)\s(\w+)/;
+let replaceText = "$3 $2 $1";
+let result = str.replace(fixRegex, replaceText);
+// "three two one"
+```
+
+**Phân tích:**
+
+```
+Regex:    (\w+)  \s  (\w+)  \s  (\w+)
+Match:    "one"  " " "two"  " " "three"
+Groups:    $1          $2          $3
+
+Replace:  "$3 $2 $1" → "three two one"
+```
+
+### So sánh `\1` vs `$1`
+
+| Ngữ cảnh                        | Cú pháp    | Ví dụ                                 |
+| ------------------------------- | ---------- | ------------------------------------- |
+| **Trong regex** (backreference) | `\1`, `\2` | `/(\w+) \1/` — match từ lặp           |
+| **Trong replacement**           | `$1`, `$2` | `.replace(/(\w+)/, '$1!')` — thay thế |
+
+### Ứng dụng thực tế
+
+```js
+// Đổi format ngày: MM/DD/YYYY → DD-MM-YYYY
+"12/25/2024".replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$2-$1-$3");
+// "25-12-2024"
+
+// Ẩn số điện thoại: 0901234567 → 090***4567
+"0901234567".replace(/(\d{3})\d{3}(\d{4})/, "$1***$2");
+// "090***4567"
+
+// Wrap từ bằng tag HTML
+"hello".replace(/(\w+)/, "<strong>$1</strong>");
+// "<strong>hello</strong>"
+```
+
+**🔑 Key Takeaway:**
+
+- `.replace(regex, replacement)` — tìm pattern, thay bằng string mới
+- Dùng `$1`, `$2`,... trong replacement để **tham chiếu captured groups**
+- `\1` dùng **trong regex**, `$1` dùng **trong replacement string**
+- Kết hợp capture groups + replace = **công cụ rất mạnh** cho text transformation
+
+---
+
+## 19. Thực hành: Remove Whitespace
+
+Bài tập tổng hợp: Xóa khoảng trắng đầu/cuối chuỗi bằng regex (không dùng `.trim()`).
+
+```js
+let hello = "   Hello, World!  ";
+let wsRegex = /^\s+|\s+$/g;
+let result = hello.replace(wsRegex, "");
+// "Hello, World!"
+```
+
+### Phân tích chi tiết
+
+```
+/^\s+|\s+$/g
+  │     │
+  │     └─── \s+$ : 1+ whitespace ở CUỐI chuỗi
+  └───────── ^\s+ : 1+ whitespace ở ĐẦU chuỗi
+  │         │
+  └────|────┘     : OR — khớp một trong hai
+              g   : Global — tìm TẤT CẢ match (cả đầu lẫn cuối)
+```
+
+### Tại sao cần flag `g`?
+
+```js
+// Không có /g → chỉ xóa match ĐẦU TIÊN (khoảng trắng đầu)
+"   Hello, World!  ".replace(/^\s+|\s+$/, "");
+// "Hello, World!  " — vẫn còn khoảng trắng cuối!
+
+// Có /g → xóa TẤT CẢ match (cả đầu lẫn cuối)
+"   Hello, World!  ".replace(/^\s+|\s+$/g, "");
+// "Hello, World!" ✓
+```
+
+### Cách khác: Dùng Capture Group
+
+```js
+// Bắt phần giữa (không phải whitespace đầu/cuối)
+let hello = "   Hello, World!  ";
+let wsRegex = /^\s+(.*\S)\s*$/;
+let result = hello.replace(wsRegex, "$1");
+// "Hello, World!"
+```
+
+**🔑 Key Takeaway:**
+
+- Bài này kết hợp: **Anchors** `^$` + **Shorthand** `\s` + **Quantifier** `+` + **Alternation** `|` + **Flag** `g` + **`.replace()`**
+- Pattern `/^\s+|\s+$/g` là kỹ thuật **trim whitespace** cổ điển bằng regex
+- Trong thực tế, dùng `String.prototype.trim()` cho đơn giản, nhưng **hiểu regex** giúp xử lý các case phức tạp hơn
+
+---
+
+## 20. Bảng tổng hợp nhanh — Regex Cheat Sheet
 
 ### Cú pháp cơ bản
 
@@ -648,12 +1037,32 @@ haRegex.test("haah"); // false — chỉ 2 lần
 | `{n,}`     | Ít nhất n lần           | `/a{3,}/`             |
 | `*?`, `+?` | Lazy (ít nhất có thể)   | `/<.*?>/` → `"<h1>"`  |
 
-### Anchors
+### Anchors & Lookaheads
 
-| Cú pháp | Ý nghĩa    | Ví dụ      |
-| ------- | ---------- | ---------- |
-| `^`     | Đầu chuỗi  | `/^Hello/` |
-| `$`     | Cuối chuỗi | `/world$/` |
+| Cú pháp   | Ý nghĩa            | Ví dụ                            |
+| --------- | ------------------ | -------------------------------- |
+| `^`       | Đầu chuỗi          | `/^Hello/`                       |
+| `$`       | Cuối chuỗi         | `/world$/`                       |
+| `(?=...)` | Positive lookahead | `/q(?=u)/` — "q" trước "u"       |
+| `(?!...)` | Negative lookahead | `/q(?!u)/` — "q" không trước "u" |
+
+### Grouping & Capturing
+
+| Cú pháp    | Ý nghĩa                         | Ví dụ                      |
+| ---------- | ------------------------------- | -------------------------- |
+| `(abc)`    | Capture group                   | `/(\w+)/` → bắt & lưu      |
+| `\1`, `\2` | Backreference (trong regex)     | `/(\w+) \1/` → từ lặp      |
+| `$1`, `$2` | Capture ref (trong replacement) | `.replace(/(\w+)/, '$1!')` |
+| `(a\|b)`   | Alternation trong group         | `/(cat\|dog)/`             |
+| `(...)?`   | Optional group                  | `/(middle )?name/`         |
+
+### Shorthand Character Classes
+
+| Shorthand | Tương đương     | Khớp               | Đối lập |
+| --------- | --------------- | ------------------ | ------- |
+| `\w`      | `[A-Za-z0-9_]`  | Chữ, số, gạch dưới | `\W`    |
+| `\d`      | `[0-9]`         | Chữ số             | `\D`    |
+| `\s`      | `[\r\t\f\n\v ]` | Khoảng trắng       | `\S`    |
 
 ### Flags
 
@@ -665,15 +1074,16 @@ haRegex.test("haah"); // false — chỉ 2 lần
 
 ### Methods
 
-| Method       | Cú pháp                    | Trả về           |
-| ------------ | -------------------------- | ---------------- |
-| `.test()`    | `regex.test(string)`       | `true` / `false` |
-| `.match()`   | `string.match(regex)`      | `array` / `null` |
-| `.replace()` | `string.replace(regex, x)` | `string` mới     |
+| Method        | Cú pháp                       | Trả về           |
+| ------------- | ----------------------------- | ---------------- |
+| `.test()`     | `regex.test(string)`          | `true` / `false` |
+| `.match()`    | `string.match(regex)`         | `array` / `null` |
+| `.replace()`  | `string.replace(regex, repl)` | `string` mới     |
+| `.matchAll()` | `string.matchAll(regex)`      | `iterator`       |
 
 ---
 
-## 15. Câu hỏi phỏng vấn thường gặp
+## 21. Câu hỏi phỏng vấn thường gặp
 
 ### Q1: `.test()` khác `.match()` như thế nào?
 
@@ -697,7 +1107,7 @@ haRegex.test("haah"); // false — chỉ 2 lần
 
 ### Q6: Làm sao validate username chỉ chứa alphanumeric, số ở cuối, ít nhất 2 ký tự?
 
-→ `/^[a-z][a-z]+\d*$|^[a-z]\d\d+$/i` — Đây là bài Restrict Possible Usernames, kết hợp anchors, character classes, và quantifiers. Xem chi tiết ở [Section 12](#12-thực-hành-restrict-possible-usernames).
+→ `/^[a-z][a-z]+\d*$|^[a-z]\d\d+$/i` — kết hợp anchors, character classes, quantifiers. Xem [Section 12](#12-thực-hành-restrict-possible-usernames).
 
 ### Q7: `{3,5}` khác gì `{3}` và `{3,}`?
 
@@ -710,3 +1120,23 @@ haRegex.test("haah"); // false — chỉ 2 lần
 ### Q9: Quantifier `+`, `*`, `?` tương đương với `{}` nào?
 
 → `+` = `{1,}`, `*` = `{0,}`, `?` = `{0,1}`. Đây là shorthand giúp viết ngắn gọn hơn.
+
+### Q10: `?` có bao nhiêu vai trò trong regex?
+
+→ **3 vai trò**: (1) `colou?r` — optional (0 hoặc 1 lần). (2) `*?`, `+?` — lazy quantifier. (3) `(?=...)`, `(?!...)` — lookahead. Phân biệt bằng **ngữ cảnh** nó xuất hiện.
+
+### Q11: Lookahead là gì? Cho ví dụ thực tế.
+
+→ Lookahead **kiểm tra** pattern phía trước mà **không consume** ký tự. Positive `(?=...)` yêu cầu pattern tồn tại, Negative `(?!...)` yêu cầu pattern không tồn tại. Ứng dụng: validate password phải có ≥6 ký tự VÀ 2 số liên tiếp → `/(?=\w{6})(?=\w*\d{2})/`.
+
+### Q12: Capture Group `\1` khác gì `$1`?
+
+→ `\1` dùng **trong regex** (backreference — tham chiếu pattern đã bắt). `$1` dùng **trong replacement string** của `.replace()`. Ví dụ: `/(\w+) \1/` match từ lặp, `.replace(/(\w+)/, '$1!')` thêm `!` sau từ.
+
+### Q13: Cách trim whitespace bằng regex?
+
+→ `/^\s+|\s+$/g` kết hợp `.replace()`: `str.replace(/^\s+|\s+$/g, '')`. Cần flag `g` để xóa **cả đầu lẫn cuối**. Trong thực tế dùng `.trim()`, nhưng regex giúp xử lý case phức tạp hơn (ví dụ: chỉ trim đầu, hoặc trim ký tự cụ thể).
+
+### Q14: Khi nào nên dùng Grouping `()` thay vì Character Class `[]`?
+
+→ `[]` khớp **một ký tự** trong tập. `()` nhóm **chuỗi ký tự** để áp dụng quantifier hoặc alternation. Ví dụ: `[abc]` → một ký tự a/b/c. `(abc)` → chuỗi "abc". `(cat|dog)` → "cat" hoặc "dog".
