@@ -6,18 +6,18 @@
 
 ## Table of Contents
 
-| #   | Section                                            | Status |
-| --- | -------------------------------------------------- | ------ |
-| 1   | [Basic JavaScript](./Basic%20Javascript/)          | ✅     |
-| 2   | [ES6](./ES6/)                                      | ✅     |
-| 3   | Regular Expressions                                | ⬜     |
-| 4   | Debugging                                          | ⬜     |
-| 5   | Basic Data Structures                              | ⬜     |
-| 6   | Basic Algorithm Scripting                          | ⬜     |
-| 7   | Object Oriented Programming                        | ⬜     |
-| 8   | Functional Programming                             | ⬜     |
-| 9   | Intermediate Algorithm Scripting                   | ⬜     |
-| 10  | JavaScript Algorithms and Data Structures Projects | ⬜     |
+| #   | Section                                               | Status |
+| --- | ----------------------------------------------------- | ------ |
+| 1   | [Basic JavaScript](./Basic%20Javascript/)             | ✅     |
+| 2   | [ES6](./ES6/)                                         | ✅     |
+| 3   | [Regular Expressions](./Regular%20Expressions/)       | ✅     |
+| 4   | [Debugging](./Debugging/)                             | ✅     |
+| 5   | [Basic Data Structures](./Basic%20Data%20Structures/) | ✅     |
+| 6   | Basic Algorithm Scripting                             | ⬜     |
+| 7   | Object Oriented Programming                           | ⬜     |
+| 8   | Functional Programming                                | ⬜     |
+| 9   | Intermediate Algorithm Scripting                      | ⬜     |
+| 10  | JavaScript Algorithms and Data Structures Projects    | ⬜     |
 
 ---
 
