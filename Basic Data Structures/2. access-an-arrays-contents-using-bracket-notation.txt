@@ -1,0 +1,10 @@
+** start of script.js **
+
+let myArray = ["a", "b", "c", "d"];
+// Only change code below this line
+myArray[1] = "Anything you want"
+// Only change code above this line
+console.log(myArray);
+
+** end of script.js **
+
