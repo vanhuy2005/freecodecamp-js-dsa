@@ -1,0 +1,18 @@
+function factorialize(num) {
+  let result = 1; 
+  for (let i = 2; i <= num; i++){
+    result *= i;
+  }
+  return result;
+}
+
+console.log(factorialize(5));
+
+//có thể xài đệ quy nhưng tiềm ẩn quy cơ stack overflow
+
+/*
+function factorialize(n) {
+  if (n <= 1) return 1;    // cơ sở
+  return n * factorialize(n - 1);
+}
+*/

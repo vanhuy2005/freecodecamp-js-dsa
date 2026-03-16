@@ -1,0 +1,15 @@
+//idea: 
+// 1. Iterates through arr in order.
+// 2. Returns the first element for which func(element) is truthy.
+// 3. Returns undefined if no element passes the test.
+
+function findElement(arr, func) {
+  for (let i = 0; i < arr.length; i++) {
+    if (func(arr[i])) {
+      return arr[i];
+    }
+  }
+  return undefined;
+}
+
+findElement([1, 2, 3, 4], num => num % 2 === 0);

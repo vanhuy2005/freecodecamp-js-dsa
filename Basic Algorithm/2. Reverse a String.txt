@@ -1,0 +1,8 @@
+function reverseString(str) {
+
+  return str.split('').reverse().join('');
+  //trong trường hợp trong chuỗi có emoji có thể sử dụng
+  // array.from('emoji').revers().join('');
+}
+
+console.log(reverseString('hello'));

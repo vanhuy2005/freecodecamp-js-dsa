@@ -1,0 +1,16 @@
+/*
+Falsy Bouncer
+Remove all falsy values from an array. Return a new array; do not mutate the original array.
+
+Falsy values in JavaScript are false, null, 0, "", undefined, and NaN.
+*/
+
+function bouncer(arr) {
+  // filter() returns a new array and does not mutate the original.
+  // Passing Boolean as the callback coerces each value to true/false.
+  return arr.filter(Boolean);
+}
+
+// Example tests:
+// console.log(bouncer([7, "ate", "", false, 9])); // [7, "ate", 9]
+// console.log(bouncer([false, null, 0, NaN, undefined, ""])); // []

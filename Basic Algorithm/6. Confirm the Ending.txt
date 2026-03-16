@@ -1,0 +1,23 @@
+//idea
+// 1. check the index of last character: str.lenth - target.length
+// 2. use slice() or substr() or substring() to cut from there
+// 3. then compare with target
+
+
+function confirmEnding(str, target) {
+  
+  const end = str.slice(-target.length);
+  return end === target;
+}
+
+console.log(confirmEnding("Hello world", "world")); // true
+console.log(confirmEnding("OpenAI", "AI"));         // true
+console.log(confirmEnding("OpenAI", "open"));       // false
+
+//use substring method
+/*
+function confirmEnding(str, target) {
+  const start = str.length - target.length;
+  return str.substring(start) === target;
+}
+*/
